@@ -28,12 +28,15 @@ class RegressionGUIPrototype(object):
     def _clear_axes(self, axes):
         axes.clear()
 
+    def _scatter_on_axes(self, x, y, axes):
+        axes.scatter(x, y, color='b')
+
     def _plot_on_axes(self, x, y, axes):
-        axes.plot(x, y)
+        axes.plot(x, y, color='r')
 
     def _pack_plot(self, x, y, axes, canvas):
         self._clear_axes(axes)
-        self._plot_on_axes(x, y, axes)
+        self._scatter_on_axes(x, y, axes)
         canvas.show()
         canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
@@ -51,7 +54,7 @@ class RegressionGUIPrototype(object):
         #TODO: But this is hard because x/y are part of state
         self.x, self.y = self.y, self.x
         self._clear_axes(self.axes)
-        self._plot_on_axes(self.x, self.y, self.axes)
+        self._scatter_on_axes(self.x, self.y, self.axes)
         self.canvas.draw()
 
     def _pack_draw_fit_button(self, master):
@@ -62,7 +65,7 @@ class RegressionGUIPrototype(object):
 
     def _toggle_draw_fit(self, checkbutton_var=None):
         self._clear_axes(self.axes)
-        self._plot_on_axes(self.x, self.y, self.axes)
+        self._scatter_on_axes(self.x, self.y, self.axes)
         self.canvas.draw()
         if checkbutton_var.get():
             m = LinearRegression().fit(self.x.reshape(-1, 1), self.y)
@@ -72,8 +75,8 @@ class RegressionGUIPrototype(object):
             self.canvas.draw()
 
 if __name__ == '__main__':
-    t = np.arange(0.0, 3.0, 0.01)
-    s = np.sin(2 * np.pi * t)
+    t = np.arange(0.0, 10.0, 0.01)
+    s = t*0.5 + 10 + np.random.normal(0, 1, len(t))
     RegressionGUIPrototype(t, s).run()
 
 #TODO: Convert this into the full 2D visual Regression prototype in your notebook
