@@ -1,4 +1,4 @@
-from tkinter import Tk, TOP, BOTH, Button, RIGHT, LEFT, Checkbutton, IntVar
+from tkinter import Tk, TOP, BOTH, Button, RIGHT, LEFT, Checkbutton, IntVar, Frame
 from functools import partial
 import numpy as np
 import matplotlib
@@ -15,14 +15,18 @@ class RegressionGUIPrototype(object):
         self.figure = Figure(figsize=(5, 4), dpi=100)
         self.axes = self.figure.add_subplot(111)
         self.master = Tk()
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self.master)
+        self.left_frame = Frame(self.master)
+        self.right_frame = Frame(self.master)
+        self.left_frame.pack(side=LEFT)
+        self.right_frame.pack(side=RIGHT)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.left_frame)
         self.x, self.y = self.d1, self.d2
 
     def run(self):
-        self._pack_flip_button(self.master)
-        self._pack_draw_fit_button(self.master)
+        self._pack_flip_button(self.right_frame)
+        self._pack_draw_fit_button(self.right_frame)
         self._pack_plot(self.d1, self.d2, self.axes, self.canvas)
-        self._pack_navigation(self.canvas, self.master)
+        self._pack_navigation(self.canvas, self.left_frame)
         self.master.mainloop()
 
     def _clear_axes(self, axes):
@@ -38,16 +42,17 @@ class RegressionGUIPrototype(object):
         self._clear_axes(axes)
         self._scatter_on_axes(x, y, axes)
         canvas.show()
-        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.pack(side=TOP, fill=BOTH, expand=1)
 
-    def _pack_navigation(self, canvas, master):
-        toolbar = NavigationToolbar2TkAgg(canvas, master)
+    def _pack_navigation(self, canvas, frame):
+        toolbar = NavigationToolbar2TkAgg(canvas, frame)
         toolbar.update()
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
 
-    def _pack_flip_button(self, master):
-        b = Button(master, text='Flip', command=self._flip_axes_and_redraw)
-        b.pack(side=RIGHT)
+    def _pack_flip_button(self, frame):
+        b = Button(frame, text='Flip', command=self._flip_axes_and_redraw)
+        b.pack()
 
     def _flip_axes_and_redraw(self):
         #TODO: Too much internal state access? Could make this pure and construct a callback via partial fxn
@@ -61,7 +66,7 @@ class RegressionGUIPrototype(object):
         checkbutton_var = IntVar()
         toggle_function = partial(self._toggle_draw_fit, checkbutton_var=checkbutton_var)
         b = Checkbutton(master, text='Draw Fit', command=toggle_function, variable=checkbutton_var)
-        b.pack(side=RIGHT)
+        b.pack()
 
     def _toggle_draw_fit(self, checkbutton_var=None):
         self._clear_axes(self.axes)
