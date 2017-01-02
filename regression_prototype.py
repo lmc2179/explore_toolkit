@@ -35,6 +35,7 @@ class RegressionGUIPrototype(object):
     def run(self):
         self._pack_flip_button(self.right_frame)
         self._pack_draw_fit_button(self.right_frame)
+        self._pack_redraw_button(self.right_frame)
         x, y = self.regression_data.get_training_data()
         self._pack_plot(x, y, self.axes, self.canvas)
         self._pack_navigation(self.canvas, self.left_frame)
@@ -62,17 +63,22 @@ class RegressionGUIPrototype(object):
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
 
     def _pack_flip_button(self, frame):
-        b = Button(frame, text='Flip', command=self._flip_axes_and_redraw)
+        b = Button(frame, text='Flip', command=self._flip_axes)
         b.pack()
 
-    def _flip_axes_and_redraw(self):
-        #TODO: Too much internal state access? Could make this pure and construct a callback via partial fxn
-        #TODO: But this is hard because x/y are part of state
+    def _pack_redraw_button(self, frame):
+        b = Button(frame, text='Redraw', command=self._redraw_canvas)
+        b.pack()
+
+    def _flip_axes(self):
         self.regression_data.flip()
         x, y = self.regression_data.get_training_data()
         self._clear_axes(self.axes)
         self._scatter_on_axes(x, y, self.axes)
-        self.canvas.draw()
+
+    def _redraw_canvas(self):
+        self.canvas.draw() # TODO: When we do this, the fit line disappears. Does fit (y/n) need to be part of global state?
+                           # Probably - we can write a separate function which take the regression object and renders it, then redraws
 
     def _pack_draw_fit_button(self, master):
         checkbutton_var = IntVar()
@@ -84,13 +90,11 @@ class RegressionGUIPrototype(object):
         self._clear_axes(self.axes)
         x, y = self.regression_data.get_training_data()
         self._scatter_on_axes(x, y, self.axes)
-        self.canvas.draw()
         if checkbutton_var.get():
             m = LinearRegression().fit(x.reshape(-1, 1), y)
             x_plot = np.linspace(min(x), max(x), num=100).reshape(-1, 1)
             y_plot = m.predict(x_plot)
             self._plot_on_axes(x_plot, y_plot, self.axes)
-            self.canvas.draw()
 
 if __name__ == '__main__':
     t = np.arange(0.0, 10.0, 0.01)
@@ -98,5 +102,6 @@ if __name__ == '__main__':
     data_matrix = np.array([t, s]).T
     RegressionGUIPrototype(data_matrix).run()
 
-#TODO: Convert this into the full 2D visual Regression prototype in your notebook
-#TODO: Add reading from CSV to complete prototype stage
+#TODO: Can we ever have stateless callbacks?
+#TODO: Regression object takes a dataframe, and replace flip with dropdown menu
+    # TODO: This issue with that is the the callbacks modify the canvas directly - they should perform some appropriate state modification and then the a rendering process will visualize thte state on the canvas
